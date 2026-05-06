@@ -11,3 +11,5 @@ Encoding: UTF-8
 LazyData: true
 URL: https://github.com/hailhan/tornadoexposure
 BugReports: https://github.com/hailhan/tornadoexposure/issues
+Depends: 
+    R (>= 3.5)
