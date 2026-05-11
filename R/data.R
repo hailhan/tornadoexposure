@@ -1,0 +1,31 @@
+#' Tornado tracks
+#'
+#' A dataset containing tracks for each tornado with a
+#' magnitude of EF 3 or greater in the United States between 1950-2025
+#' (as of May 2026)
+#'
+#' @details Tornado tracks are stored as LINESTRING geometries, which are
+#' generated from the raw dataset's start and end coordinates.
+#'
+#' For more details on the process of generating the tornado track geometries,
+#' consult `data-raw/process_tracks.R`
+#'
+#' @format A data frame with 3,762 rows and 7 variables:
+#' \describe{
+#'   \item{tornado_id}{Unique identifier for tornado, calculated from raw
+#'                        dataset's yr and om columns}
+#'   \item{wkt}{Well-known-text column containing tornado track's LINESTRING
+#'                  geometry}
+#'   \item{date}{Date of the tornado in year-mo-dy format}
+#'   \item{time}{Time of the tornado in hh:mm:ss}
+#'   \item{mag}{Magnitude of the tornado on the (Enhanced) Fujita (E)F scale}
+#'   \item{inj}{Number of injuries associated with tornado}
+#'    \item{fat}{Number of fatalities associated with tornado}
+#' }
+#'
+#' @source \url{https://www.spc.noaa.gov/wcm/data/1950-2025_all_tornadoes.csv}
+#'
+#' @references
+#' NOAA Storm Prediction Center. Severe Weather Database.
+#' https://www.spc.noaa.gov/wcm/ (accessed 2026-05-06)
+"tornado_tracks"
