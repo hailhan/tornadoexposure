@@ -11,5 +11,10 @@ Encoding: UTF-8
 LazyData: true
 URL: https://github.com/hailhan/tornadoexposure
 BugReports: https://github.com/hailhan/tornadoexposure/issues
+Imports:
+  ggplot2,
+  sf,
+  tigris
 Depends: 
     R (>= 3.5)
+RoxygenNote: 7.3.3
