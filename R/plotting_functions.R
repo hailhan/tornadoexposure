@@ -2,34 +2,24 @@ library(tigris)
 library(sf)
 library(ggplot2)
 
-# takes a geographic boundary (either list of ZCTAs or states) as input
+# takes a geographic boundary (list of ZCTAs) as input
 # uses Tigris to return a basemap of those geographic boundaries for the given year
-get_basemap <- function(zcta_list, state, year){
+get_basemap <- function(zcta_list, year){
 
-  if (missing(zcta_list)) {
-    # default to latest year for state boundaries
-    if (year > 2010) {
-      year = 2010
-    } else if (year < 2000) {
-      year = 2000
-    } else {
-      year = year
-    }
-    boundary <- zctas(state = state, year = year, cb = FALSE)
-  }
+  # default to closest year in tigris
+  valid_years <- c(2000, 2010, 2020)
+  year <- max(valid_years[valid_years <= year])
 
-  if (missing(state)) {
-    # default to earliest year in tigris
-    if (year < 2000) {
-      year = 2000
-    }
-    boundary <- zctas(starts_with = zcta_list, year = year, cb = TRUE)
-  }
+  boundary <- zctas(
+    starts_with = as.character(zcta_list),
+    year = year,
+    cb = TRUE)
 
   ggplot(data = boundary) +
       geom_sf(fill = NA, color = "black") +
       theme_void()
 }
 
-CA <- get_basemap(state = "IL", year = 2005)
-CA
+# works with any length of ZCTA provided (eg. 6, 603, 60304)
+IL <- get_basemap(zcta_list = c(60304), year = 2005)
+IL
