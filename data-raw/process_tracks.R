@@ -28,5 +28,8 @@ keep_cols <- c("tornado_id", "wkt", "date", "time", "mag", "inj", "fat")
 tornado_tracks <- tornado_tracks %>%
   select(all_of(keep_cols))
 
+# attach ZCTA geometries
+
+
 # write to clean data folder
 usethis::use_data(tornado_tracks, overwrite = TRUE)

@@ -12,7 +12,7 @@ get_basemap(zcta_list, year)
 \item{year}{Census year for requested geometries}
 }
 \value{
-An plot object mapping boundaries for requested ZCTAs
+A mapping of boundaries for requested ZCTAs
 }
 \description{
 Takes a list of US ZCTA codes and a year, and returns a plot of the requested

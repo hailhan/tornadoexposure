@@ -41,3 +41,26 @@ get_basemap <- function(zcta_list, year){
     ggplot2::geom_sf(fill = NA, color = "black") +
     ggplot2::theme_void()
 }
+
+#' Create a choropleth map for variable of interest across selected ZCTAs
+#'
+#' Takes a list of US ZCTA codes, a year, and a feature, and returns a plot of
+#' the requested ZCTA boundaries with a choropleth fill to represent the spatial
+#' distribution of the feature
+#'
+#' @param zcta_list Vector of ZCTAs (or ZCTA prefixes)
+#' @note ZCTAs/prefixes can be passed in as characters or integers
+#' @note ZCTAs/prefixes can be 1-5 characters
+#' @param year Census year for requested geometries
+#' @param feature Name of feature to be visualized
+#' @note Feature name should align with column name in dataset
+#'
+#' @return A map of the distribution of feature of interest across selected ZCTAs
+#'
+#' @export
+create_choropleth <- function(zcta_list, year, feature){
+  basemap <- get_basemap(zcta_list, year)
+  basemap +
+    ggplot2::aes(fill = .data[[feature]], color = "black") +
+  ggplot2::scale_fill_viridis_c()
+}
