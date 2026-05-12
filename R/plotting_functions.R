@@ -32,12 +32,12 @@ get_geometry <- function(zcta_list, year){
 #' @note ZCTAs/prefixes can be 1-5 characters
 #' @param year Census year for requested geometries
 #'
-#' @return An plot object mapping boundaries for requested ZCTAs
+#' @return A mapping of boundaries for requested ZCTAs
 #'
 #' @keywords internal
 get_basemap <- function(zcta_list, year){
   boundary_geom <- get_geometry(zcta_list, year)
   ggplot2::ggplot(data = boundary_geom) +
-    geom_sf(fill = NA, color = "black") +
-    theme_void()
+    ggplot2::geom_sf(fill = NA, color = "black") +
+    ggplot2::theme_void()
 }
