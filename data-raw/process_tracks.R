@@ -10,21 +10,21 @@ tornados <- tornados %>%
   mutate(tornado_id = paste(yr, om, sep = "_"))
 
 # drop all storms < EF3
-# keeps dataset in safe range for GitHub, and retains only storms with health effects
+# keeps dataset in safe range for GitHub, retains only storms with health effects
 tornados <- tornados %>%
   filter(mag > 2)
 
 # create wkt column from start/end coordinate pairs
 tornados <- tornados %>%
-  mutate(wkt = sprintf("LINESTRING(%f %f, %f %f)",
+  mutate(geometry = sprintf("LINESTRING(%f %f, %f %f)",
                        slon, slat,
                        elon, elat))
 
 # create tornado track linestring geometries from wkt column
-tornado_tracks <- st_as_sf(tornados, wkt = "wkt", crs = 3857)
+tornado_tracks <- st_as_sf(tornados, wkt = "geometry", crs = 3857)
 
 # limit to relevant columns
-keep_cols <- c("tornado_id", "wkt", "date", "yr", "mo", "dy", "mag", "inj", "fat")
+keep_cols <- c("tornado_id", "date", "yr", "mo", "dy", "mag", "inj", "fat", "geometry")
 tornado_tracks <- tornado_tracks %>%
   select(all_of(keep_cols))
 
