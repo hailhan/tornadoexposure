@@ -1,12 +1,13 @@
 Package: tornadoexposure
 Type: Package
-Title: What the Package Does (Title Case)
+Title: Explore and Map ZCTA-Level Tornado Exposures in the United States
 Version: 0.1.0
 Author: Hailey Hansen
-Maintainer: The package maintainer <yourself@somewhere.net>
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
-License: What license is it under?
+Maintainer: <hailhan@uchicago.edu>
+Description: This package contains data and functions to allow users to explore
+    and map ZCTA-level tornado exposures in the United States from 1954-2025.
+    Data comes from the NOAA Severe Weather Database and the Census Bureau. 
+    Tornados of magnitude EF 3 and greater are included in the dataset.
 Encoding: UTF-8
 LazyData: true
 URL: https://github.com/hailhan/tornadoexposure
