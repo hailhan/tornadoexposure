@@ -42,6 +42,24 @@ get_basemap <- function(zcta_list, year){
     ggplot2::theme_void()
 }
 
+#' Aggregates a feature of interest across ZCTAs for given timeframe
+#'
+#' Takes a dataframe of exposures, returns a dataframe where each row is a ZCTA
+#' and the sum or average (if magnitude) of the feature
+#'
+#' @param exposed_zctas Dataframe of tornado-level exposures
+#'
+#' @return Dataframe of feature aggregated at ZCTA level
+#'
+#' @keywords internal
+generate_feature <- function(exposed_zctas, feature){
+  if (feature == "mag"){
+    # calculate average
+  } else {
+    # sum
+  }
+}
+
 #' Create a choropleth map for variable of interest across selected ZCTAs
 #'
 #' Takes a list of US ZCTA codes, a year, and a feature, and returns a plot of
@@ -58,9 +76,15 @@ get_basemap <- function(zcta_list, year){
 #' @return A map of the distribution of feature of interest across selected ZCTAs
 #'
 #' @export
+#'
+#' @importFrom dplyr %>%
 create_choropleth <- function(zcta_list, year, feature){
+  subset <- zt %>% dplyr::select(
+    yr == year & ZCTA %in% zcta_list
+    ) # force ZCTA and zcta_list to be characters
+  generate_feature_col(subset)
   basemap <- get_basemap(zcta_list, year)
   basemap +
-    ggplot2::aes(fill = .data[[feature]], color = "black") +
+    ggplot2::aes(fill = fill_data[[feature]], color = "black") +
   ggplot2::scale_fill_viridis_c()
 }
