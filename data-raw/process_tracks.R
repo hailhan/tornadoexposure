@@ -21,7 +21,13 @@ tornados <- tornados %>%
                        elon, elat))
 
 # create tornado track linestring geometries from wkt column
-tornado_tracks <- st_as_sf(tornados, wkt = "geometry", crs = 3857)
+tornado_tracks <- st_as_sf(tornados, wkt = "geometry", crs = 4326)
+
+# transform geometries to appropriate crs
+tornado_tracks <- sf::st_transform(
+  tornado_tracks,
+  3857
+)
 
 # limit to relevant columns
 keep_cols <- c("tornado_id", "date", "yr", "mo", "dy", "mag", "inj", "fat", "geometry")

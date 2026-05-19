@@ -192,12 +192,6 @@ map_exposure <- function(zcta_list, year, feature){
 #'
 #' @importFrom dplyr %>%
 add_tracks <- function(zcta_list, year, plot){
-  sf::st_crs(tornado_tracks) <- 4326
-
-  tornado_tracks <- sf::st_transform(
-    tornado_tracks,
-    3857
-  )
 
   zcta_subset <- get_data(zt, zcta_list, year)
 
