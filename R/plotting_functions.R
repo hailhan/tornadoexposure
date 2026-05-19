@@ -192,7 +192,25 @@ map_exposure <- function(zcta_list, year, feature){
 #'
 #' @importFrom dplyr %>%
 add_tracks <- function(zcta_list, year, plot){
-  subset <- get_data(zt, zcta_list, year)
-  shared <- sf::st_intersection(subset, tornado_tracks)
-  plot + ggplot2::geom_sf(data = tornado_tracks, color = "red")
+  sf::st_crs(tornado_tracks) <- 4326
+
+  tornado_tracks <- sf::st_transform(
+    tornado_tracks,
+    3857
+  )
+
+  zcta_subset <- get_data(zt, zcta_list, year)
+
+  tracks_subset <- tornado_tracks %>%
+    dplyr::filter(yr == year) %>%
+    sf::st_transform(sf::st_crs(zcta_subset))
+
+  affected_tracks <- sf::st_filter(
+    tracks_subset,
+    zcta_subset,
+    .predicate = sf::st_intersects
+  )
+  plot +
+    ggplot2::geom_sf(data = affected_tracks,
+                     color = "red")
 }
