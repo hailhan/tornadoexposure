@@ -151,8 +151,7 @@ get_data <- function(zcta_list, year){
 #'
 #' @importFrom dplyr %>%
 map_exposure <- function(zcta_list, year, feature){
-
-  subset <- get_data(zcta_list, year, feature)
+  subset <- get_data(zcta_list, year)
 
   fill_data <- generate_feature(subset, feature)
 
@@ -163,14 +162,13 @@ map_exposure <- function(zcta_list, year, feature){
       sf::st_drop_geometry(fill_data),
       by = "ZCTA")
 
-  # want plot data to be exportable
   ggplot2::ggplot(plot_data) +
     ggplot2::geom_sf(
       ggplot2::aes(fill = value),
       color = "black"
     ) +
-    ggplot2::scale_fill_viridis_c() +
-    ggplot2::labs(
+    ggplot2::scale_fill_viridis_c(na.value = "transparent") +
+    ggplot2::labs( # eventually modify so that the fill value isn't just the column name
       fill = feature
     ) + ggplot2::theme_void()
 }
