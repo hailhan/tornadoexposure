@@ -14,12 +14,23 @@
 get_geometry <- function(zcta_list, year){
   # default to closest year in tigris
   valid_years <- c(2000, 2010, 2020)
-  year <- max(valid_years[valid_years <= year])
+  year <- ifelse(
+    any(valid_years <= year), # default to 2000 for any year before 2000
+    max(valid_years[valid_years <= year]),
+    2000
+  )
 
   boundary <- tigris::zctas(
     starts_with = as.character(zcta_list),
     year = year,
     cb = TRUE)
+
+  # standardize ZCTA column name
+  if (year == 2010){
+    boundary %>% mutate(ZCTA = ZCTA5)
+  } else if (year == 2020){
+    boundary %>% mutate(ZCTA = GEOID20)
+  }
 }
 
 #' Generate basemap for ZCTA boundaries
@@ -55,8 +66,19 @@ get_basemap <- function(zcta_list, year){
 generate_feature <- function(exposed_zctas, feature){
   if (feature == "mag"){
     # calculate average
+    exposed_zctas %>%
+      group_by(ZCTA) %>%
+      summarise(avg_mag = mean(feature, na.rm = TRUE))
+  } else if (feature == "tornado_id") {
+    # sum unique tornado_ids for tornado count
+    exposed_zctas %>%
+      group_by(ZCTA) %>%
+      summarise(tornado_count = sum(unique(feature), na.rm = TRUE))
   } else {
     # sum
+    exposed_zctas %>%
+      group_by(ZCTA) %>%
+      summarise(total = sum(feature, na.rm = TRUE))
   }
 }
 
@@ -70,7 +92,8 @@ generate_feature <- function(exposed_zctas, feature){
 #' @note ZCTAs/prefixes can be passed in as characters or integers
 #' @note ZCTAs/prefixes can be 1-5 characters
 #' @param year Census year for requested geometries
-#' @param feature Name of feature to be visualized
+#' @param feature Name of feature to be visualized (can be tornado_id, mag,
+#' fatality, injury)
 #' @note Feature name should align with column name in dataset
 #'
 #' @return A map of the distribution of feature of interest across selected ZCTAs
@@ -79,11 +102,14 @@ generate_feature <- function(exposed_zctas, feature){
 #'
 #' @importFrom dplyr %>%
 create_choropleth <- function(zcta_list, year, feature){
-  subset <- zt %>% dplyr::select(
-    yr == year & ZCTA %in% zcta_list
+  subset <- zt %>% dplyr::filter(
+    yr == year,
+    as.character(ZCTA) %in% as.character(zcta_list)
     ) # force ZCTA and zcta_list to be characters
   generate_feature_col(subset)
+
   basemap <- get_basemap(zcta_list, year)
+  # make sure zt (3857) and basemap have the same CRS
   basemap +
     ggplot2::aes(fill = fill_data[[feature]], color = "black") +
   ggplot2::scale_fill_viridis_c()
