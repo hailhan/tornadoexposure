@@ -107,6 +107,30 @@ generate_feature <- function(exposed_zctas,
   agg
 }
 
+#' Generates a dataframe containing all exposures for a given set of ZCTA-years
+#'
+#' Takes a list of US ZCTA codes, a year, and a feature, and returns a dataframe
+#' containing all exposure data for the requested ZCTA boundaries
+#'
+#' @param zcta_list Vector of ZCTAs (or ZCTA prefixes)
+#' @note ZCTAs/prefixes can be passed in as characters or integers
+#' @note ZCTAs/prefixes can be 1-5 characters
+#' @param year Census year for requested geometries
+#'
+#' @return A dataframe with exposure data for selected ZCTAs
+#'
+#' @export
+#'
+#' @importFrom dplyr %>%
+get_data <- function(zcta_list, year){
+
+  subset <- zt %>% dplyr::filter(
+    yr == year,
+    stringr::str_starts(as.character(ZCTA), as.character(zcta_list))
+  ) # force ZCTA and zcta_list to be characters
+
+}
+
 #' Create a choropleth map for variable of interest across selected ZCTAs
 #'
 #' Takes a list of US ZCTA codes, a year, and a feature, and returns a plot of
@@ -128,22 +152,18 @@ generate_feature <- function(exposed_zctas,
 #' @importFrom dplyr %>%
 map_exposure <- function(zcta_list, year, feature){
 
-  subset <- zt %>% dplyr::filter(
-    yr == year,
-    stringr::str_starts(as.character(ZCTA), as.character(zcta_list))
-    ) # force ZCTA and zcta_list to be characters
-  print(glimpse(subset))
+  subset <- get_data(zcta_list, year, feature)
 
   fill_data <- generate_feature(subset, feature)
 
   boundary_geom <- get_geometry(zcta_list, year)
 
-  # make sure zt (3857) and basemap have the same CRS
   plot_data <- boundary_geom %>%
     dplyr::left_join(
       sf::st_drop_geometry(fill_data),
       by = "ZCTA")
 
+  # want plot data to be exportable
   ggplot2::ggplot(plot_data) +
     ggplot2::geom_sf(
       ggplot2::aes(fill = value),
@@ -152,5 +172,5 @@ map_exposure <- function(zcta_list, year, feature){
     ggplot2::scale_fill_viridis_c() +
     ggplot2::labs(
       fill = feature
-    )
+    ) + ggplot2::theme_void()
 }
