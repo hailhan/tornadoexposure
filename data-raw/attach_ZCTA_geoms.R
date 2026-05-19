@@ -28,6 +28,29 @@ zt_2000 <- st_join(tornados_2000, zctas_2000)
 zt_2010 <- st_join(tornados_2010, zctas_2010)
 zt_2020 <- st_join(tornados_2020, zctas_2020)
 
+# attach ZCTA geometry (instead of tornado track)
+#zt_2000 <- zt_2000 %>%
+#  st_drop_geometry() %>%
+#  left_join(
+#    zctas_2000 %>% select(ZCTA5CE00, geometry),
+#    by = "ZCTA5CE00"
+#  ) %>%
+#  st_as_sf()
+#zt_2010 <- zt_2010 %>%
+#  st_drop_geometry() %>%
+#  left_join(
+#    zctas_2010 %>% select(ZCTA5CE10, geometry),
+#    by = "ZCTA5CE10"
+#  ) %>%
+#  st_as_sf()
+#zt_2020 <- zt_2020 %>%
+#  st_drop_geometry() %>%
+#  left_join(
+#    zctas_2020 %>% select(ZCTA5CE20, geometry),
+#    by = "ZCTA5CE20"
+#  ) %>%
+#  st_as_sf()
+
 # bind into a single dataframe
 zt <- bind_rows(zt_2000, zt_2010, zt_2020)
 zt <- zt %>%
@@ -35,7 +58,7 @@ zt <- zt %>%
     ZCTA = coalesce(ZCTA5CE00, ZCTA5CE10, ZCTA5CE20)
   )
 keep_cols <- c("tornado_id", "date", "yr", "mo", "dy", "mag", "inj", "fat",
-               "ZCTA", "geometry")
+               "ZCTA") #, "geometry")
 zt <- zt %>%
   select(all_of(keep_cols))
 

@@ -6,31 +6,33 @@
 #' @param zcta_list Vector of ZCTAs (or ZCTA prefixes)
 #' @note ZCTAs/prefixes can be passed in as characters or integers
 #' @note ZCTAs/prefixes can be 1-5 characters
-#' @param year Census year for requested geometries
+#' @param yr Census year for requested geometries
 #'
 #' @return An sf object containing ZCTA boundary geometries
 #'
 #' @keywords internal
-get_geometry <- function(zcta_list, year){
+get_geometry <- function(zcta_list, yr){
   # default to closest year in tigris
   valid_years <- c(2000, 2010, 2020)
-  year <- ifelse(
-    any(valid_years <= year), # default to 2000 for any year before 2000
-    max(valid_years[valid_years <= year]),
-    2000
-  )
+
+  # default to 2000 for any year before 2000
+  year_plot <- max(valid_years[valid_years <= yr], na.rm = TRUE)
+  if (is.infinite(year_plot)) year_plot <- 2000
 
   boundary <- tigris::zctas(
     starts_with = as.character(zcta_list),
-    year = year,
+    year = year_plot,
     cb = TRUE)
 
   # standardize ZCTA column name
-  if (year == 2010){
-    boundary %>% mutate(ZCTA = ZCTA5)
-  } else if (year == 2020){
-    boundary %>% mutate(ZCTA = GEOID20)
+  boundary <- if (year_plot == 2010) {
+    dplyr::mutate(boundary, ZCTA = ZCTA5)
+  } else if (year_plot == 2020) {
+    dplyr::mutate(boundary, ZCTA = GEOID20)
+  } else {
+    boundary
   }
+  return(boundary)
 }
 
 #' Generate basemap for ZCTA boundaries
@@ -59,27 +61,50 @@ get_basemap <- function(zcta_list, year){
 #' and the sum or average (if magnitude) of the feature
 #'
 #' @param exposed_zctas Dataframe of tornado-level exposures
+#' @param feature The feature of interest (tornado_id for count, mag for magnitude,
+#' fat for fatalities, inj for injuries)
 #'
 #' @return Dataframe of feature aggregated at ZCTA level
 #'
 #' @keywords internal
-generate_feature <- function(exposed_zctas, feature){
-  if (feature == "mag"){
-    # calculate average
-    exposed_zctas %>%
-      group_by(ZCTA) %>%
-      summarise(avg_mag = mean(feature, na.rm = TRUE))
-  } else if (feature == "tornado_id") {
-    # sum unique tornado_ids for tornado count
-    exposed_zctas %>%
-      group_by(ZCTA) %>%
-      summarise(tornado_count = sum(unique(feature), na.rm = TRUE))
-  } else {
-    # sum
-    exposed_zctas %>%
-      group_by(ZCTA) %>%
-      summarise(total = sum(feature, na.rm = TRUE))
+generate_feature <- function(exposed_zctas,
+                             feature = c("tornado_id", "mag", "fat", "inj")){
+  feature <- match.arg(feature)
+  allowed <- c("tornado_id", "mag", "fat", "inj")
+
+  if (!feature %in% allowed) {
+    stop("feature must be one of: ", paste(allowed, collapse = ", "))
   }
+
+  agg <- exposed_zctas %>%
+    dplyr::group_by(ZCTA)
+
+  if (feature == "mag") {
+
+    agg <- agg %>%
+      dplyr::summarise(
+        value = mean(.data[[feature]], na.rm = TRUE),
+        .groups = "drop"
+      )
+
+  } else if (feature == "tornado_id") {
+
+    agg <- agg %>%
+      dplyr::summarise(
+        value = dplyr::n_distinct(.data[[feature]]),
+        .groups = "drop"
+      )
+
+  } else {
+
+    agg <- agg %>%
+      dplyr::summarise(
+        value = sum(as.numeric(.data[[feature]]), na.rm = TRUE),
+        .groups = "drop"
+      )
+  }
+
+  agg
 }
 
 #' Create a choropleth map for variable of interest across selected ZCTAs
@@ -101,16 +126,31 @@ generate_feature <- function(exposed_zctas, feature){
 #' @export
 #'
 #' @importFrom dplyr %>%
-create_choropleth <- function(zcta_list, year, feature){
+map_exposure <- function(zcta_list, year, feature){
+
   subset <- zt %>% dplyr::filter(
     yr == year,
-    as.character(ZCTA) %in% as.character(zcta_list)
+    stringr::str_starts(as.character(ZCTA), as.character(zcta_list))
     ) # force ZCTA and zcta_list to be characters
-  generate_feature_col(subset)
+  print(glimpse(subset))
 
-  basemap <- get_basemap(zcta_list, year)
+  fill_data <- generate_feature(subset, feature)
+
+  boundary_geom <- get_geometry(zcta_list, year)
+
   # make sure zt (3857) and basemap have the same CRS
-  basemap +
-    ggplot2::aes(fill = fill_data[[feature]], color = "black") +
-  ggplot2::scale_fill_viridis_c()
+  plot_data <- boundary_geom %>%
+    dplyr::left_join(
+      sf::st_drop_geometry(fill_data),
+      by = "ZCTA")
+
+  ggplot2::ggplot(plot_data) +
+    ggplot2::geom_sf(
+      ggplot2::aes(fill = value),
+      color = "black"
+    ) +
+    ggplot2::scale_fill_viridis_c() +
+    ggplot2::labs(
+      fill = feature
+    )
 }
