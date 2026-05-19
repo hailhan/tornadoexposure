@@ -122,9 +122,9 @@ generate_feature <- function(exposed_zctas,
 #' @export
 #'
 #' @importFrom dplyr %>%
-get_data <- function(zcta_list, year){
+get_data <- function(dataframe, zcta_list, year){
 
-  subset <- zt %>% dplyr::filter(
+  subset <- dataframe %>% dplyr::filter(
     yr == year,
     stringr::str_starts(as.character(ZCTA), as.character(zcta_list))
   ) # force ZCTA and zcta_list to be characters
@@ -151,7 +151,7 @@ get_data <- function(zcta_list, year){
 #'
 #' @importFrom dplyr %>%
 map_exposure <- function(zcta_list, year, feature){
-  subset <- get_data(zcta_list, year)
+  subset <- get_data(zt, zcta_list, year)
 
   fill_data <- generate_feature(subset, feature)
 
@@ -171,4 +171,28 @@ map_exposure <- function(zcta_list, year, feature){
     ggplot2::labs( # eventually modify so that the fill value isn't just the column name
       fill = feature
     ) + ggplot2::theme_void()
+}
+
+#' Overlay tornado tracks on top of ZCTA boundary maps
+#'
+#' Takes a map object (either choropleth filled or blank ZCTA boundaries) and
+#' overlays tornado tracks
+#'
+#' @param zcta_list Vector of ZCTAs (or ZCTA prefixes)
+#' @note ZCTAs/prefixes can be passed in as characters or integers
+#' @note ZCTAs/prefixes can be 1-5 characters
+#' @param year Census year for requested geometries
+#' @param plot An sf plot object
+#' @note Can be a choropleth created by map_exposure or unfilled ZCTA boundaries
+#' from get_geometry
+#'
+#' @return A map with tornado tracks overlaid
+#'
+#' @export
+#'
+#' @importFrom dplyr %>%
+add_tracks <- function(zcta_list, year, plot){
+  subset <- get_data(zt, zcta_list, year)
+  shared <- sf::st_intersection(subset, tornado_tracks)
+  plot + ggplot2::geom_sf(data = tornado_tracks, color = "red")
 }
